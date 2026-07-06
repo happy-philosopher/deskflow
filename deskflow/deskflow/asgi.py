@@ -1,9 +1,9 @@
 """
-ASGI config for deskflow project.
+Конфигурация ASGI для проекта deskflow.
 
-It exposes the ASGI callable as a module-level variable named ``application``.
+Она предоставляет возможность вызова ASGI в качестве переменной уровня модуля с именем `application`.
 
-For more information on this file, see
+Для получения дополнительной информации об этом файле смотрите:
 https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
 """
 
