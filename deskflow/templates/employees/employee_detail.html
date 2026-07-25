@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>{{ employee.first_name }} {{ employee.last_name }}</h2>
+    <ul>
+        <li>Пол:
+            {% if employee.gender == 'M' %}
+                Мужской
+            {% elif employee.gender == 'F' %}
+                Женский
+            {% else %}
+                Не указан
+            {% endif %}
+        </li>
+        <li>Навыки:</li>
+        <ul>
+            {% for es in employee.skills_with_levels %}
+                <li>{{ es.skill.name }} (уровень: {{ es.level }})</li>
+            {% endfor %}
+        </ul>
+    </ul>
+
+    <h3>Фотографии:</h3>
+    <div class="photo-grid">
+        {% for image in employee_images %}
+            <img src="{{ image.image.url }}" alt="Фото №{{ image.order }}">
+        {% endfor %}
+    </div>
+{% endblock %}

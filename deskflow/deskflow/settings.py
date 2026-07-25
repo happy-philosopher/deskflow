@@ -10,12 +10,12 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+from import_export.formats.base_formats import CSV, JSON
 
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -44,8 +44,9 @@ INSTALLED_APPS = [
 
     # Сторонние приложения
     'debug_toolbar',
-    'django_ckeditor_5',
+    'django_ckeditor_5',  # Встраиваемый редактор
     'django_extensions',
+    'import_export',
 
     # Мои приложения
     'employees',
@@ -70,13 +71,15 @@ ROOT_URLCONF = 'deskflow.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates'),],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.static',
             ],
         },
     },
@@ -122,26 +125,78 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-# --- Статика и медиа ---
-STATIC_URL = "/static/"
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+
+# Статические файлы (CSS, JS, общие изображения)
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static_dev',
+]
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # для сбора при деплое
+
+
+# Медиа-файлы (пользовательские фото)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
 # --- Настройки для CKEditor 5 ---
 CKEDITOR_5_CONFIGS = {
-    "default": {
-        "toolbar": [
-            ["heading", "|", "bold", "italic", "link"],
-            ["bulletedList", "numberedList"],
-            ["|", "codeBlock", "blockQuote"],
-            ["undo", "redo"],
-        ],
-        "language": "ru",
-        "simpleUpload": False,
+    'extends': {
+        # Настройка панели инструментов (toolbar)
+        'toolbar': {
+            'toolbar_panel_id': 'toolbar',  # ID панели
+            'toolbar_width': '100%',      # Ширина панели
+            'items': [
+                'undo', 'redo', '|',  # Кнопки undo/redo и разделитель
+                'heading', '|',         # Заголовки
+                'bold', 'italic', 'underline', 'strikethrough', '|',  # Шрифтовое оформление
+                'alignment', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',  # Текст и шрифт
+                'link', 'imageUpload', 'mediaEmbed', 'fileUpload', '|',  # Медиа и ссылки
+                'bulletedList', 'numberedList', 'todoList', '|',  # Списки
+                'blockQuote', 'insertTable', 'codeBlock', 'code', '|',  # Таблицы и код
+                'findAndReplace', 'highlight', 'removeFormat'
+            ],
+            'shouldNotGroupWhenFull': True  # Не группировать кнопки, когда панель заполнена
+        },
+
+        # Язык редактора
+        'language': 'ru',
+
+        # Настройки для плагина image
+        'image': {
+            'toolbar': [
+                'imageTextAlternative',  # Альтернативный текст для изображения
+                'imageStyle:full',      # Стиль изображения (full, side)
+                'imageStyle:side'       # Стиль сбоку
+            ]
+        },
+
+        # Настройки для плагина table
+        'table': {
+            'contentToolbar': ['tableColumn', 'tableRow', 'mergeTableCells']  # Кнопки для работы с таблицей
+        },
+
+        # Заполнитель (плейсхолдер) в редакторе
+        'placeholder': 'Введите текст...',
+
+        # Дополнительные опции (можно расширять под свои нужды)
+        'link': {
+            'target': '_blank'  # Открывать ссылку в новом окне
+        },
+        'mediaEmbed': {
+            'previewsInData': True  # Показывать превью ссылок (например, видео YouTube)
+        },
     }
 }
+
+
+# Настройки import-export
+IMPORT_FORMATS = [JSON]
+EXPORT_FORMATS = [JSON]

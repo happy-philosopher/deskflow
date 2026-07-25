@@ -16,11 +16,13 @@ class Desk(models.Model):
         unique=True,
         help_text=_("например, A12, 305, B-02"),
     )
+
     extra_info = models.TextField(
         _("дополнительная информация"),
         blank=True,
         help_text=_("любые примечания по рабочему месту"),
     )
+
     employee = models.OneToOneField(
         EmployeeProfile,
         on_delete=models.SET_NULL,
@@ -31,6 +33,7 @@ class Desk(models.Model):
     )
 
     created_at = models.DateTimeField(_("дата создания"), auto_now_add=True)
+
     updated_at = models.DateTimeField(_("дата обновления"), auto_now=True)
 
     class Meta:

@@ -3,12 +3,21 @@
 
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
+from import_export import resources
+from import_export.admin import ImportExportModelAdmin
 
 from .models import Desk
 
 
+class DeskResource(resources.ModelResource):
+    class Meta:
+        model = Desk
+
+
 @admin.register(Desk)
-class DeskAdmin(admin.ModelAdmin):
+class DeskAdmin(ImportExportModelAdmin):
+    resource_class = DeskResource
+
     list_display = ("number", "employee", "extra_info_preview")
     search_fields = (
         "number",

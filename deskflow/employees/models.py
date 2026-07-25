@@ -14,30 +14,34 @@ class Skill(models.Model):
         unique=True,
     )
 
+    def __str__(self) -> str:
+        return self.name
+
     class Meta:
         verbose_name = _("навык")
         verbose_name_plural = _("навыки")
         ordering = ["name"]
-
-    def __str__(self) -> str:
-        return self.name
 
 
 class EmployeeProfile(models.Model):
     GENDER_CHOICES = [
         ("M", _("Мужской")),
         ("F", _("Женский")),
-        ("O", _("Другой")),
     ]
 
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="employee_profile",
         verbose_name=_("пользователь"),
+        blank=True,
+        null=True
     )
+
     first_name = models.CharField(_("имя"), max_length=50)
+
     last_name = models.CharField(_("фамилия"), max_length=50)
+
     middle_name = models.CharField(
         _("отчество"),
         max_length=50,
@@ -45,6 +49,7 @@ class EmployeeProfile(models.Model):
         null=True,
         help_text=_("необязательно"),
     )
+
     gender = models.CharField(
         _("пол"),
         max_length=1,
@@ -52,6 +57,7 @@ class EmployeeProfile(models.Model):
         blank=True,
         null=True,
     )
+
     description = CKEditor5Field(
         config_name="extends",
         verbose_name=_("описание"),
@@ -67,6 +73,7 @@ class EmployeeProfile(models.Model):
     )
 
     created_at = models.DateTimeField(_("дата создания"), auto_now_add=True)
+
     updated_at = models.DateTimeField(_("дата обновления"), auto_now=True)
 
     class Meta:
@@ -87,12 +94,14 @@ class EmployeeSkill(models.Model):
         related_name="employee_skills",
         verbose_name=_("сотрудник"),
     )
+
     skill = models.ForeignKey(
         Skill,
         on_delete=models.CASCADE,
         related_name="employee_skills",
         verbose_name=_("навык"),
     )
+
     level = models.PositiveSmallIntegerField(
         _("уровень освоения"),
         default=1,
@@ -112,3 +121,29 @@ class EmployeeSkill(models.Model):
 
     def __str__(self) -> str:
         return f"{self.employee} — {self.skill}: {self.level}"
+
+
+class EmployeeImage(models.Model):
+    image = models.ImageField(upload_to="employees/", verbose_name="изображение")
+
+    order = models.IntegerField(verbose_name="порядок")
+
+    employee = models.ForeignKey(
+        EmployeeProfile, related_name="images", on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        return f"{self.employee} — изображение №{self.order}"
+
+    def delete(self, *args, **kwargs):
+        try:
+            # Проверяем существование файла перед удалением
+            if self.image and self.image.name:
+                self.image.delete(save=False)  # удаляем файл с диска
+        except Exception as e:
+            print(f"Ошибка при удалении файла: {e}")
+        finally:
+            super().delete(*args, **kwargs)  # удаляем запись из БД
+
+    class Meta:
+        ordering = ["order"]
