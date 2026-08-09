@@ -19,7 +19,7 @@ body {
 
 /* Header & Footer */
 header, footer {
-    background-color: #4CAF50; /* зелёный акцент */
+    background-color: #4CAF50;
     color: white;
     text-align: center;
     padding: 1em 0;
@@ -35,7 +35,7 @@ footer p {
     font-size: 0.9em;
 }
 
-/* Main content (контент) */
+/* Main content */
 main {
     flex: 1;
     padding: 20px;
@@ -51,7 +51,7 @@ a:hover {
     text-decoration: underline;
 }
 
-/* Карточка сотрудника (employee-card) */
+/* Карточка сотрудника */
 .employee-card {
     background-color: white;
     border: 1px solid #ddd;
@@ -101,22 +101,31 @@ a:hover {
     background-color: #45a049;
 }
 
-/* Сетки карточек (card-grid) и фото (photo-grid) */
-.card-grid, .photo-grid {
+/* Сетки карточек и фото (общие) */
+.card-grid {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
     justify-content: center;
 }
 
+/* Галерея (детальная страница) – переопределяем для фото */
+.photo-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 10px;
+    justify-content: center;
+}
+
 .photo-grid img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 4px;
+    max-width: 200px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     cursor: pointer;
 }
 
-/* Страница подробной карточки (employee_detail.html) */
+/* Страница подробной карточки */
 .employee-detail h2 {
     text-align: center;
     margin-bottom: 30px;
@@ -135,19 +144,114 @@ a:hover {
     font-size: 0.95em;
 }
 
-/* Домашняя страница (home.html) */
-#home .card-grid {
-    gap: 25px; /* увеличенный отступ для главной страницы */
+/* Главное фото на детальной странице */
+.employee-detail .main-photo {
+    max-width: 300px;
+    border-radius: 8px;
+    margin: 15px 0;
 }
 
-/* Стили для CKEditor5 (если используется в админке) */
+.employee-detail .info-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 20px;
+}
+.employee-detail .info-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+/* Домашняя страница – увеличенный отступ */
+#home .card-grid {
+    gap: 25px;
+}
+
+/* Стили для навыков */
+.skills-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.skills-label {
+    font-weight: 600;
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+.skill-tag {
+    background-color: #e0e7ff;
+    color: #3730a3;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    line-height: 1.25;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.skill-tag:hover {
+    background-color: #dbeafe;
+    transform: translateY(-1px);
+}
+
+.skill-tag--empty {
+    background: transparent;
+    color: #9ca3af;
+    padding: 0;
+}
+
+/* Пагинация (единый блок) */
+.pagination-nav {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.pagination {
+    display: flex;
+    list-style: none;
+    gap: 5px;
+    padding: 0;
+}
+
+.page-link {
+    display: block;
+    padding: 8px 16px;
+    color: #007bff;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.page-link:hover {
+    background: #e9ecef;
+}
+
+.page-item.active .page-link {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.page-item.disabled .page-link {
+    color: #6c757d;
+    pointer-events: none;
+    background: #e9ecef;
+}
+
+/* CKEditor5 (админка) */
 .cke_editor__desktop {
     width: 100%;
     max-width: 800px;
     margin: auto;
 }
 
-/* Отзывчивый дизайн (media queries) */
+/* Отзывчивый дизайн */
 @media (max-width: 768px) {
     .card-grid {
         justify-content: center;

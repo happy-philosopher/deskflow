@@ -1,10 +1,13 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>Список сотрудников</h2>
+    <h1>Список сотрудников</h1>
+
     <div class="card-grid">
-        {% for employee in object_list %}
-            {% include 'employees/_employee_card.html' with employee=employee %}
+        {% for emp in object_list %}
+            {% include 'employees/_employee_card.html' with employee=emp %}
         {% endfor %}
     </div>
+
+    {% include 'pagination.html' with page_obj=page_obj %}
 {% endblock %}

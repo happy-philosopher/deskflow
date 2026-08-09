@@ -5,13 +5,14 @@ from django.contrib import admin
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from django.utils.translation import gettext_lazy as _
+from .validators import validate_hire_date
 
 from .models import EmployeeProfile, EmployeeSkill, Skill, EmployeeImage
 
 
 class EmployeeImageInline(admin.TabularInline):
     model = EmployeeImage
-    extra = 3  # количество пустых форм для добавления
+    extra = 1  # количество пустых форм для добавления
     readonly_fields = ['image_preview']  # добавим превью
 
     def image_preview(self, obj):
@@ -45,21 +46,26 @@ class EmployeeSkillInline(admin.TabularInline):
 class EmployeeProfileAdmin(ImportExportModelAdmin):
     resource_class = EmployeeResource
 
-    list_display = ("first_name", "last_name", "middle_name", "gender", "user")
+    list_display = ("first_name", "last_name", "middle_name", "gender", "user", "hire_date")
     list_filter = ("gender",)
     search_fields = ("first_name", "last_name", "middle_name", "user__username")
 
     # Добавляем инлайн для изображений
-    inlines = [EmployeeSkillInline, EmployeeImageInline]  # теперь здесь два инлайна
+    inlines = [EmployeeSkillInline, EmployeeImageInline]
 
     fieldsets = [
         (None, {
-            'fields': ['user', 'first_name', 'last_name', 'middle_name', 'gender']
+            'fields': ['user', 'first_name', 'last_name', 'middle_name', 'gender', 'hire_date']
         }),
         (_('Описание'), {
             'fields': ['description']
         }),
     ]
+
+    def clean(self):
+        super().clean()
+        if self.hire_date:
+            validate_hire_date(self.hire_date)
 
     class Media:
         js = ('admin/js/vendor/jquery/jquery.js', 'admin/js/jquery.init.js')

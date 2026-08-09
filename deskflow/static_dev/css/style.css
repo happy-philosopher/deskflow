@@ -202,3 +202,160 @@ a:hover {
     color: #9ca3af;
     padding: 0;
 }
+
+.pagination {
+    margin-top: 20px;
+    justify-content: center;
+}
+
+.page-link {
+    color: #007bff;
+}
+
+.page-item.active .page-link {
+    background-color: #007bff;
+    color: white;
+}
+
+.pagination-nav {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+.pagination {
+    display: flex;
+    list-style: none;
+    gap: 5px;
+    padding: 0;
+}
+.page-link {
+    display: block;
+    padding: 8px 16px;
+    color: #007bff;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    text-decoration: none;
+}
+.page-item.active .page-link {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+.page-item.disabled .page-link {
+    color: #6c757d;
+    pointer-events: none;
+    background: #e9ecef;
+}
+
+/* Стили для детальной страницы */
+.employee-detail .main-photo {
+    max-width: 300px;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+.employee-detail .info-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 20px;
+}
+.employee-detail .info-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+/* Галерея в сетке */
+.photo-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 10px;
+}
+.photo-grid img {
+    max-width: 200px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Центрирование пагинации */
+.pagination-nav {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+.pagination {
+    display: flex;
+    list-style: none;
+    gap: 5px;
+    padding: 0;
+}
+.page-link {
+    display: block;
+    padding: 8px 16px;
+    color: #007bff;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: 0.2s;
+}
+.page-link:hover {
+    background: #e9ecef;
+}
+.page-item.active .page-link {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+.page-item.disabled .page-link {
+    color: #6c757d;
+    pointer-events: none;
+    background: #e9ecef;
+}
+
+/* Модальное окно для увеличения фото */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.9);
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    overflow: hidden; /* запрещаем прокрутку самого оверлея */
+}
+
+.modal-overlay .modal-content {
+    max-width: 90vw;
+    max-height: 90vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+    cursor: default;
+    /* Центрирование через flex родителя */
+}
+
+.modal-overlay .modal-close {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    line-height: 1;
+    z-index: 1001;
+}
+
+.modal-overlay .modal-close:hover {
+    color: #bbb;
+    transform: scale(1.1);
+}

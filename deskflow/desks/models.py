@@ -3,8 +3,8 @@
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.core.exceptions import ValidationError
 
-from employees.models import EmployeeProfile
 
 
 class Desk(models.Model):
@@ -24,7 +24,7 @@ class Desk(models.Model):
     )
 
     employee = models.OneToOneField(
-        EmployeeProfile,
+        'employees.EmployeeProfile',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -46,3 +46,12 @@ class Desk(models.Model):
         if self.employee:
             return f"{base} ({self.employee})"
         return base
+
+    def clean(self):
+        from employees.validators import validate_desk_adjacency
+        # Вызываем валидатор, передавая текущий объект стола
+        validate_desk_adjacency(self)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()   # автоматически вызовет clean()
+        super().save(*args, **kwargs)

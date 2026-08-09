@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>Описание проекта</h2>
-    <p>Здесь будет краткое описание проекта...</p>
-    
+    <h1>Главная</h1>
+    <p>Всего сотрудников: {{ total_employees }}</p>
+
     <div class="card-grid">
-        {% for employee in employees %}
-            {% include 'employees/_employee_card.html' with employee=employee %}
+        {% for emp in latest_employees %}
+            {% include 'employees/_employee_card.html' with employee=emp %}
         {% endfor %}
     </div>
 {% endblock %}

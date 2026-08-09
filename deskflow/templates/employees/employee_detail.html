@@ -1,29 +1,99 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>{{ employee.first_name }} {{ employee.last_name }}</h2>
-    <ul>
-        <li>Пол:
-            {% if employee.gender == 'M' %}
-                Мужской
-            {% elif employee.gender == 'F' %}
-                Женский
-            {% else %}
-                Не указан
-            {% endif %}
-        </li>
-        <li>Навыки:</li>
-        <ul>
-            {% for es in employee.skills_with_levels %}
-                <li>{{ es.skill.name }} (уровень: {{ es.level }})</li>
-            {% endfor %}
-        </ul>
-    </ul>
+    <div class="employee-detail">
+        <h1>{{ employee.first_name }} {{ employee.last_name }}</h1>
 
-    <h3>Фотографии:</h3>
-    <div class="photo-grid">
-        {% for image in employee_images %}
-            <img src="{{ image.image.url }}" alt="Фото №{{ image.order }}">
-        {% endfor %}
+        {% if employee.main_image %}
+            <img src="{{ employee.main_image.image.url }}" class="main-photo" alt="Заглавное фото">
+        {% endif %}
+
+        <ul class="info-list">
+            <li><strong>Пол:</strong> {{ employee.get_gender_display|default:"не указан" }}</li>
+            <li><strong>Стаж:</strong> {{ employee.experience_days }} дней</li>
+            <li><strong>Номер стола:</strong> {{ employee.desk_number|default:"не назначен" }}</li>
+        </ul>
+
+        <h2>Навыки</h2>
+        <div class="skills-tags">
+            {% for es in employee.skills_with_levels %}
+                <span class="skill-tag">{{ es.skill.name }} (уровень: {{ es.level }})</span>
+            {% empty %}
+                <span class="skill-tag skill-tag--empty">Нет навыков</span>
+            {% endfor %}
+        </div>
+
+        <h2>Галерея</h2>
+        <div class="photo-grid">
+            {% for image in employee.other_images %}
+                <img src="{{ image.image.url }}" alt="Фото №{{ image.order }}">
+            {% empty %}
+                <p>Нет дополнительных фото</p>
+            {% endfor %}
+        </div>
     </div>
+
+    <!-- Модальное окно для увеличения фото -->
+    <div id="imageModal" class="modal-overlay" onclick="closeModal()">
+        <span class="modal-close" onclick="event.stopPropagation(); closeModal();">&times;</span>
+        <img class="modal-content" id="modalImage" src="" alt="Увеличенное фото">
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImage');
+        const closeBtn = document.querySelector('.modal-close');
+
+        function openModal(src, alt) {
+            modal.style.display = 'flex';
+            modalImg.src = src;
+            modalImg.alt = alt || 'Увеличенное фото';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Клик по главному фото и фото в галерее
+        const images = document.querySelectorAll('.main-photo, .photo-grid img');
+        images.forEach(img => {
+            img.addEventListener('click', function(e) {
+                e.stopPropagation();
+                openModal(this.src, this.alt);
+            });
+        });
+
+        // Закрытие по клику на фон (но не на само фото)
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Закрытие по крестику
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                closeModal();
+            });
+        }
+
+        // Закрытие по Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.style.display === 'flex') {
+                closeModal();
+            }
+        });
+
+        // При клике на само фото — ничего не делаем (только если нужно дополнительное действие)
+        modalImg.addEventListener('click', function(e) {
+            e.stopPropagation(); // чтобы не закрывалось при клике на фото
+        });
+    });
+</script>
 {% endblock %}

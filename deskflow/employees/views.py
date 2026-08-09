@@ -1,9 +1,5 @@
-# Создавайте свои представления здесь.
-
-
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import DetailView, ListView
-
+from django.views.generic import TemplateView, ListView, DetailView
 from .models import EmployeeProfile
 
 
@@ -11,32 +7,43 @@ class HomeView(ListView):
     model = EmployeeProfile
     template_name = "home.html"
     context_object_name = "employees"
-    queryset = EmployeeProfile.objects.prefetch_related("skills")  # оптимизация запросов
+    queryset = EmployeeProfile.objects.prefetch_related("skills", "images", "employee_skills__skill") \
+                                       .select_related("desk")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_employees'] = EmployeeProfile.objects.count()
+        latest_employees = (
+            EmployeeProfile.objects
+            .select_related('desk')
+            .prefetch_related('images', 'employee_skills__skill')
+            .order_by('-hire_date')[:4]
+        )
+        context['latest_employees'] = latest_employees
+        return context
 
 
 class EmployeeListView(ListView):
     model = EmployeeProfile
     template_name = "employees/employee_list.html"
     context_object_name = "object_list"
-    queryset = EmployeeProfile.objects.prefetch_related("skills")
+    paginate_by = 10
+
+    def get_queryset(self):
+        return (
+            EmployeeProfile.objects
+            .select_related('desk')
+            .prefetch_related('images', 'employee_skills__skill')
+            .order_by('-hire_date')
+        )
 
 
 class EmployeeDetailView(LoginRequiredMixin, DetailView):
     model = EmployeeProfile
     template_name = "employees/employee_detail.html"
-    login_url = "/login/"  # перенаправление на страницу входа
-    context_object_name = "employee"  # явно указываем имя контекста
+    login_url = "/login/"
+    context_object_name = "employee"
 
-    def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        # Получаем навыки с уровнями, отсортированные по названию навыка
-        obj.skills_with_levels = obj.employee_skills.order_by("skill__name")
-        return obj
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        employee = context["employee"]
-
-        # Сортируем фотографии по полю order и передаём в шаблон
-        context["employee_images"] = employee.images.all().order_by("order")
-        return context
+    def get_queryset(self):
+        return super().get_queryset().select_related('desk') \
+                                      .prefetch_related('images', 'employee_skills__skill')

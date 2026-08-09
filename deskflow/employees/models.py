@@ -1,3 +1,4 @@
+# employees/models.py
 # Создавайте свои модели здесь
 
 
@@ -5,6 +6,9 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django_ckeditor_5.fields import CKEditor5Field
+from .validators import validate_hire_date
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 
 class Skill(models.Model):
@@ -35,7 +39,8 @@ class EmployeeProfile(models.Model):
         related_name="employee_profile",
         verbose_name=_("пользователь"),
         blank=True,
-        null=True
+        null=True,
+        help_text=_("необязательно"),
     )
 
     first_name = models.CharField(_("имя"), max_length=50)
@@ -72,6 +77,13 @@ class EmployeeProfile(models.Model):
         verbose_name=_("навыки"),
     )
 
+    hire_date = models.DateField(
+        _("дата приёма на работу"),
+        null=True,
+        blank=True,
+        validators=[validate_hire_date]
+    )
+
     created_at = models.DateTimeField(_("дата создания"), auto_now_add=True)
 
     updated_at = models.DateTimeField(_("дата обновления"), auto_now=True)
@@ -85,6 +97,60 @@ class EmployeeProfile(models.Model):
         if self.middle_name:
             parts.insert(1, self.middle_name)
         return " ".join(parts)
+
+    def get_employee_type(self) -> str:
+        """Определяет тип сотрудника: тестировщик, разработчик или другой"""
+
+        print(f"get_employee_type для {self} вызван")
+        # Проверка на тестировщика
+        tester_skill = Skill.objects.filter(name="Знание QA/тестирования").first()
+        if tester_skill and self.employee_skills.filter(skill=tester_skill, level__gte=6, level__lte=10).exists():
+            print("Результат: tester")
+            return 'tester'
+
+        # Проверка на разработчика
+        if self.employee_skills.filter(skill__name__icontains="Программирование", level__gte=6, level__lte=10).exists():
+            print("Результат: developer")
+            return 'developer'
+
+        print("Результат: other")
+        return 'other'
+
+    def save(self, *args, **kwargs):
+        # Валидация будет вызываться из отдельного файла
+        super().save(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+        if self.hire_date and self.hire_date > timezone.now().date():
+            raise ValidationError({'hire_date': _('Дата приёма не может быть в будущем')})
+
+    @property
+    def main_image(self):
+        """Первое изображение (по порядку)"""
+        return self.images.order_by('order').first()
+
+    @property
+    def other_images(self):
+        """Все изображения, кроме первого"""
+        return self.images.order_by('order')[1:]
+
+    @property
+    def desk_number(self):
+        """Номер стола (если привязан)"""
+        return self.desk.number if hasattr(self, 'desk') and self.desk else None
+
+    @property
+    def experience_days(self):
+        """Стаж в днях от даты приёма до сегодня"""
+        if self.hire_date:
+            return (timezone.now().date() - self.hire_date).days
+        return 0
+
+    @property
+    def skills_with_levels(self):
+        """Навыки с уровнями (через промежуточную модель)"""
+        return self.employee_skills.select_related('skill').order_by('skill__name')
 
 
 class EmployeeSkill(models.Model):

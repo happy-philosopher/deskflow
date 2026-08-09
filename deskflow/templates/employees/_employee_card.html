@@ -1,8 +1,8 @@
 <div class="employee-card">
     {% load static %}
     <div class="card-image">
-        {% if employee.images.first %}
-            <img src="{{ employee.images.first.image.url }}" alt="Фото {{ employee.first_name }} {{ employee.last_name }}">
+        {% if employee.main_image %}
+            <img src="{{ employee.main_image.image.url }}" alt="Фото {{ employee.first_name }} {{ employee.last_name }}">
         {% else %}
             <img src="{% static 'img/default.png' %}" alt="Нет фото">
         {% endif %}
@@ -19,6 +19,8 @@
                 <span class="skill-tag skill-tag--empty">Нет навыков</span>
             {% endfor %}
         </div>
+
+        <p><strong>Стаж:</strong> {{ employee.experience_days }} дней</p>
 
         <a href="{% url 'employee_detail' employee.pk %}" class="btn-details">Подробнее</a>
     </div>
