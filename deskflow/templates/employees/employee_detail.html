@@ -4,19 +4,19 @@
     <div class="employee-detail">
         <h1>{{ employee.first_name }} {{ employee.last_name }}</h1>
 
-        {% if employee.main_image %}
-            <img src="{{ employee.main_image.image.url }}" class="main-photo" alt="Заглавное фото">
+        {% if main_image %}
+            <img src="{{ main_image.image.url }}" class="main-photo" alt="Заглавное фото">
         {% endif %}
 
         <ul class="info-list">
             <li><strong>Пол:</strong> {{ employee.get_gender_display|default:"не указан" }}</li>
-            <li><strong>Стаж:</strong> {{ employee.experience_days }} дней</li>
-            <li><strong>Номер стола:</strong> {{ employee.desk_number|default:"не назначен" }}</li>
+            <li><strong>Стаж:</strong> {{ experience_days }} дней</li>
+            <li><strong>Номер стола:</strong> {{ desk_number|default:"не назначен" }}</li>
         </ul>
 
         <h2>Навыки</h2>
         <div class="skills-tags">
-            {% for es in employee.skills_with_levels %}
+            {% for es in skills_with_levels %}
                 <span class="skill-tag">{{ es.skill.name }} (уровень: {{ es.level }})</span>
             {% empty %}
                 <span class="skill-tag skill-tag--empty">Нет навыков</span>
@@ -25,7 +25,7 @@
 
         <h2>Галерея</h2>
         <div class="photo-grid">
-            {% for image in employee.other_images %}
+            {% for image in other_images %}
                 <img src="{{ image.image.url }}" alt="Фото №{{ image.order }}">
             {% empty %}
                 <p>Нет дополнительных фото</p>

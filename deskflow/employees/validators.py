@@ -36,55 +36,72 @@ def validate_desk_adjacency(desk):
     тестировщик и программист одновременно.
     """
     if not desk.employee:
-        return  # сотрудник не назначен – проверка не нужна
-
-    # Разбираем номер текущего стола
-    match = re.match(r'([A-Za-zА-Яа-я]+)(\d+)', desk.number)
-    if not match:
-        return  # формат номера не поддерживается
-
-    letter = match.group(1)
-    try:
-        number = int(match.group(2))
-    except ValueError:
         return
 
-    # Нормализуем букву (русскую в латинскую)
-    normalized_letter = normalize_letter(letter)
-
-    from desks.models import Desk
     employee = desk.employee
+    from desks.models import Desk
     current_type = employee.get_employee_type()
     if current_type not in ('tester', 'developer'):
-        return  # если сотрудник не тестировщик и не программист – проверка не нужна
+        return
 
-    # Получаем все столы, кроме текущего
-    all_desks = Desk.objects.exclude(pk=desk.pk)
-
-    for other_desk in all_desks:
-        if not other_desk.employee:
-            continue
-        # Разбираем номер соседнего стола
-        other_match = re.match(r'([A-Za-zА-Яа-я]+)(\d+)', other_desk.number)
-        if not other_match:
-            continue
-        other_letter = other_match.group(1)
+    # Разбираем номер стола
+    match = re.match(r'([A-Za-zА-Яа-я]+)(\d+)', desk.number)
+    if match:
+        # Буквенно-цифровой номер
+        letter = match.group(1)
         try:
-            other_number = int(other_match.group(2))
+            number = int(match.group(2))
         except ValueError:
-            continue
+            return
+        normalized_letter = normalize_letter(letter)
 
-        # Нормализуем букву соседнего стола
-        other_normalized = normalize_letter(other_letter)
+        # Получаем все столы, кроме текущего
+        all_desks = Desk.objects.exclude(pk=desk.pk)
 
-        # Проверяем, что буквы совпадают (после нормализации) и номера отличаются на 1
-        if normalized_letter == other_normalized and abs(other_number - number) == 1:
-            neighbor_type = other_desk.employee.get_employee_type()
-            if (current_type == 'tester' and neighbor_type == 'developer') or \
-               (current_type == 'developer' and neighbor_type == 'tester'):
-                raise ValidationError(
-                    _("Нельзя сажать тестировщика и программиста за соседние столы (в одном ряду).")
-                )
+        for other_desk in all_desks:
+            if not other_desk.employee:
+                continue
+            other_match = re.match(r'([A-Za-zА-Яа-я]+)(\d+)', other_desk.number)
+            if not other_match:
+                continue
+            other_letter = other_match.group(1)
+            try:
+                other_number = int(other_match.group(2))
+            except ValueError:
+                continue
+            other_normalized = normalize_letter(other_letter)
+            if normalized_letter == other_normalized and abs(other_number - number) == 1:
+                neighbor_type = other_desk.employee.get_employee_type()
+                if (current_type == 'tester' and neighbor_type == 'developer') or \
+                        (current_type == 'developer' and neighbor_type == 'tester'):
+                    raise ValidationError(
+                        _("Нельзя сажать тестировщика и программиста за соседние столы (в одном ряду).")
+                    )
+    else:
+        # Числовой номер (только цифры)
+        try:
+            number = int(desk.number)
+        except ValueError:
+            return
+
+        all_desks = Desk.objects.exclude(pk=desk.pk)
+        for other_desk in all_desks:
+            if not other_desk.employee:
+                continue
+            # Проверяем, что номер соседа тоже числовой
+            if not re.match(r'^\d+$', other_desk.number):
+                continue
+            try:
+                other_number = int(other_desk.number)
+            except ValueError:
+                continue
+            if abs(other_number - number) == 1:
+                neighbor_type = other_desk.employee.get_employee_type()
+                if (current_type == 'tester' and neighbor_type == 'developer') or \
+                        (current_type == 'developer' and neighbor_type == 'tester'):
+                    raise ValidationError(
+                        _("Нельзя сажать тестировщика и программиста за соседние столы (в одном ряду).")
+                    )
 
 
 def validate_hire_date(date):
