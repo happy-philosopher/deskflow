@@ -67,3 +67,13 @@ deskflow/
 ├── README.md
 └── requirements.txt
 ```
+
+## Запуск приложения
+```
+...\deskflow\deskflow> python manage.py runserver
+```
+
+## Тестирование приложения
+```
+...\deskflow\deskflow> python manage.py test
+```
