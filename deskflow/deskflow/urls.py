@@ -20,9 +20,14 @@ from django.urls import path, include
 import debug_toolbar
 from django.conf import settings
 from django.conf.urls.static import static
+from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from employees.views import HomeView, EmployeeListView, EmployeeDetailView
+from employees.views import HomeView, EmployeeListView, EmployeeDetailView, EmployeeViewSet
 
+
+router = DefaultRouter()
+router.register(r'employees', EmployeeViewSet, basename='employee')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,6 +36,10 @@ urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('employees/', EmployeeListView.as_view(), name='employee_list'),
     path('employees/<int:pk>/', EmployeeDetailView.as_view(), name='employee_detail'),
+
+    path('api/', include(router.urls)),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
 
 urlpatterns += [

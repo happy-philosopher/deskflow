@@ -2,8 +2,19 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView
 from django.db.models import Prefetch
 from django.utils import timezone
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 
+from .serializers import EmployeeProfileSerializer
+from .filters import EmployeeFilter
+from .permissions import IsAdmin, IsWardenOrAdmin
 from .models import EmployeeProfile, EmployeeImage, EmployeeSkill
+from desks.models import Desk
 
 
 class HomeView(ListView):
@@ -101,3 +112,44 @@ class EmployeeDetailView(LoginRequiredMixin, DetailView):
             context['desk_number'] = None
 
         return context
+
+
+class EmployeeViewSet(viewsets.ModelViewSet):
+    queryset = EmployeeProfile.objects.all()
+    serializer_class = EmployeeProfileSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = EmployeeFilter
+    search_fields = ['first_name', 'last_name', 'middle_name']
+    ordering_fields = ['hire_date', 'first_name', 'last_name']
+    ordering = ['-hire_date']
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [AllowAny]
+        elif self.action in ['create', 'update', 'partial_update', 'destroy']:
+            permission_classes = [IsAdmin]
+        else:
+            permission_classes = [IsAdmin]
+        return [permission() for permission in permission_classes]
+
+    @action(detail=True, methods=['patch'], permission_classes=[IsWardenOrAdmin])
+    def move(self, request, pk=None):
+        employee = self.get_object()
+        desk_id = request.data.get('desk')
+        if desk_id is None:
+            return Response({'error': 'Поле "desk" обязательно'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            desk = Desk.objects.get(pk=desk_id)
+        except Desk.DoesNotExist:
+            return Response({'error': 'Стол не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Проверка соседства выполняется в модели через full_clean()
+        employee.desk = desk
+        try:
+            employee.full_clean()
+            employee.save()
+        except ValidationError as e:
+            return Response({'error': e.messages}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(employee)
+        return Response(serializer.data)

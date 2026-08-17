@@ -1,12 +1,11 @@
-# Регистрируйте свои модели здесь
-
-
 from django.contrib import admin
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from django.utils.translation import gettext_lazy as _
-from .validators import validate_hire_date
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
 
+from .validators import validate_hire_date
 from .models import EmployeeProfile, EmployeeSkill, Skill, EmployeeImage
 
 
@@ -69,3 +68,28 @@ class EmployeeProfileAdmin(ImportExportModelAdmin):
 
     class Media:
         js = ('admin/js/vendor/jquery/jquery.js', 'admin/js/jquery.init.js')
+
+
+class CustomUserAdmin(UserAdmin):
+    def get_groups(self, obj):
+        """Возвращает список групп пользователя через запятую."""
+        return ", ".join([group.name for group in obj.groups.all()])
+    get_groups.short_description = 'Группы'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Вставляем 'get_groups' после 'username' в list_display
+        base_list = list(self.list_display)
+        if 'username' in base_list:
+            idx = base_list.index('username')
+            if 'get_groups' in base_list:
+                base_list.remove('get_groups')
+            base_list.insert(idx + 1, 'get_groups')
+        else:
+            if 'get_groups' not in base_list:
+                base_list.append('get_groups')
+        self.list_display = tuple(base_list)
+
+# Перерегистрируем модель User с кастомным админом
+admin.site.unregister(User)  # если уже зарегистрирована
+admin.site.register(User, CustomUserAdmin)
